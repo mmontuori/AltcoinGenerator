@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo ${*}
+
+for i in $(docker ps -q); do docker exec $i /quark/src/quark-cli ${*}; echo "***************************"; done
