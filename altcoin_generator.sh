@@ -28,7 +28,7 @@ COINBASE_MATURITY=5
 # leave CHAIN empty for main network, -regtest for regression network and -testnet for test network
 CHAIN="-regtest"
 # this is the amount of coins to get as a reward of mining the block of height 1. if not set this will default to 50
-PREMINED_AMOUNT=1000000
+# PREMINED_AMOUNT=1000000
 
 # warning: change this to your own pubkey to get the genesis block mining reward
 GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C9978DEAA415E6558702F9C5571A88208C0D4D1D13F90542BFE52DE8A90E51CF840984FD0
@@ -36,7 +36,7 @@ GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C
 # dont change the following variables unless you know what you are doing
 LITECOIN_BRANCH=0.16
 GENESISHZERO_REPOS=https://github.com/mmontuori/GenesisH0.git
-LITECOIN_REPOS=https://github.com/mmontuori/litecoin.git
+LITECOIN_REPOS=https://github.com/mmontuori/quarkcoin.git
 LITECOIN_PUB_KEY=040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9
 LITECOIN_MERKLE_HASH=97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9
 LITECOIN_MAIN_GENESIS_HASH=12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2
@@ -92,6 +92,7 @@ docker_stop_nodes()
     for id in $(docker ps -q -a  -f ancestor=$DOCKER_IMAGE_LABEL); do
         docker stop $id
     done
+    echo "y" | docker system prune >/dev/null 2>&1
 }
 
 docker_remove_nodes()
@@ -192,17 +193,17 @@ newcoin_replace_vars()
         echo "Warning: $COIN_NAME_LOWER already existing. Not replacing any values"
         return 0
     fi
-    if [ ! -d "litecoin-master" ]; then
+    if [ ! -d "quarkcoin-master" ]; then
         # clone litecoin and keep local cache
-        git clone -b $LITECOIN_BRANCH $LITECOIN_REPOS litecoin-master
+        git clone -b $LITECOIN_BRANCH $LITECOIN_REPOS quarkcoin-master
     else
         echo "Updating master branch"
-        pushd litecoin-master
+        pushd quarkcoin-master
         git pull
         popd
     fi
 
-    git clone -b $LITECOIN_BRANCH litecoin-master $COIN_NAME_LOWER
+    git clone -b $LITECOIN_BRANCH quarkcoin-master $COIN_NAME_LOWER
 
     pushd $COIN_NAME_LOWER
 
@@ -251,9 +252,9 @@ newcoin_replace_vars()
 
     $SED -i "s,vSeeds.emplace_back,//vSeeds.emplace_back,g" src/chainparams.cpp
 
-    if [ -n "$PREMINED_AMOUNT" ]; then
-        $SED -i "s/CAmount nSubsidy = 50 \* COIN;/if \(nHeight == 1\) return COIN \* $PREMINED_AMOUNT;\n    CAmount nSubsidy = 50 \* COIN;/" src/validation.cpp
-    fi
+    #if [ -n "$PREMINED_AMOUNT" ]; then
+    #    $SED -i "s/CAmount nSubsidy = QUARK_REWARD \* COIN;/if \(nHeight == 1\) return COIN \* $PREMINED_AMOUNT;\n    CAmount nSubsidy = QUARK_REWARD \* COIN;/" src/validation.cpp
+    #fi
 
     $SED -i "s/COINBASE_MATURITY = 100/COINBASE_MATURITY = $COINBASE_MATURITY/" src/consensus/consensus.h
 
