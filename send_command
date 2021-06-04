@@ -2,4 +2,4 @@
 
 echo ${*}
 
-for i in $(docker ps -q); do docker exec $i /quark/src/quark-cli ${*}; echo "***************************"; done
+for i in $(docker ps -q); do docker exec $i /moneta/src/moneta-cli ${*}; echo "***************************"; done

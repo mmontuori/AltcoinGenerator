@@ -14,17 +14,17 @@
 # CHAIN variable below
 
 # change the following variables to match your new coin
-COIN_NAME="Quark"
-COIN_UNIT="QARK"
+COIN_NAME="Moneta"
+COIN_UNIT="MNTA"
 # 42 million coins at total (litecoin total supply is 84000000)
-TOTAL_SUPPLY=420000000
-MAINNET_PORT="47890"
-TESTNET_PORT="47891"
-PHRASE="The date is 5/21/2021 and Michael Montuori decided to say. It is time for a new coin"
+# TOTAL_SUPPLY=420000000
+# MAINNET_PORT="47890"
+# TESTNET_PORT="47891"
+# PHRASE="The date is 5/21/2021 and Michael Montuori decided to say. It is time for a new coin"
 # First letter of the wallet address. Check https://en.bitcoin.it/wiki/Base58Check_encoding
-PUBKEY_CHAR="20"
+# PUBKEY_CHAR="20"
 # number of blocks to wait to be able to spend coinbase UTXO's
-COINBASE_MATURITY=5
+# COINBASE_MATURITY=5
 # leave CHAIN empty for main network, -regtest for regression network and -testnet for test network
 CHAIN="-regtest"
 # this is the amount of coins to get as a reward of mining the block of height 1. if not set this will default to 50
@@ -36,14 +36,14 @@ GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C
 # dont change the following variables unless you know what you are doing
 LITECOIN_BRANCH=0.16
 GENESISHZERO_REPOS=https://github.com/mmontuori/GenesisH0.git
-LITECOIN_REPOS=https://github.com/mmontuori/quarkcoin.git
-LITECOIN_PUB_KEY=040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9
-LITECOIN_MERKLE_HASH=97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9
-LITECOIN_MAIN_GENESIS_HASH=12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2
-LITECOIN_TEST_GENESIS_HASH=4966625a4b2851d9fdee139e56211a0d88575f59ed816ff5e6a63deb4e3e29a0
-LITECOIN_REGTEST_GENESIS_HASH=530827f38f93b43ed12af0b3ad25a288dc02ed74d6d7857862df51fc56c416f9
-MINIMUM_CHAIN_WORK_MAIN=0x0000000000000000000000000000000000000000000000c1bfe2bbe614f41260
-MINIMUM_CHAIN_WORK_TEST=0x000000000000000000000000000000000000000000000000001df7b5aa1700ce
+LITECOIN_REPOS=https://github.com/mmontuori/moneta.git
+# LITECOIN_PUB_KEY=040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9
+# LITECOIN_MERKLE_HASH=97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9
+# LITECOIN_MAIN_GENESIS_HASH=12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2
+# LITECOIN_TEST_GENESIS_HASH=4966625a4b2851d9fdee139e56211a0d88575f59ed816ff5e6a63deb4e3e29a0
+# LITECOIN_REGTEST_GENESIS_HASH=530827f38f93b43ed12af0b3ad25a288dc02ed74d6d7857862df51fc56c416f9
+# MINIMUM_CHAIN_WORK_MAIN=0x0000000000000000000000000000000000000000000000c1bfe2bbe614f41260
+# MINIMUM_CHAIN_WORK_TEST=0x000000000000000000000000000000000000000000000000001df7b5aa1700ce
 COIN_NAME_LOWER=$(echo $COIN_NAME | tr '[:upper:]' '[:lower:]')
 COIN_NAME_UPPER=$(echo $COIN_NAME | tr '[:lower:]' '[:upper:]')
 COIN_UNIT_LOWER=$(echo $COIN_UNIT | tr '[:upper:]' '[:lower:]')
@@ -193,17 +193,17 @@ newcoin_replace_vars()
         echo "Warning: $COIN_NAME_LOWER already existing. Not replacing any values"
         return 0
     fi
-    if [ ! -d "quarkcoin-master" ]; then
+    if [ ! -d "moneta-master" ]; then
         # clone litecoin and keep local cache
-        git clone -b $LITECOIN_BRANCH $LITECOIN_REPOS quarkcoin-master
+        git clone -b $LITECOIN_BRANCH $LITECOIN_REPOS moneta-master
     else
         echo "Updating master branch"
-        pushd quarkcoin-master
+        pushd moneta-master
         git pull
         popd
     fi
 
-    git clone -b $LITECOIN_BRANCH quarkcoin-master $COIN_NAME_LOWER
+    git clone -b $LITECOIN_BRANCH moneta-master $COIN_NAME_LOWER
 
     pushd $COIN_NAME_LOWER
 
@@ -227,73 +227,73 @@ newcoin_replace_vars()
 
     $SED -i "s/ltc/$COIN_UNIT_LOWER/g" src/chainparams.cpp
 
-    $SED -i "s/84000000/$TOTAL_SUPPLY/" src/amount.h
-    $SED -i "s/1,48/1,$PUBKEY_CHAR/" src/chainparams.cpp
+    # $SED -i "s/84000000/$TOTAL_SUPPLY/" src/amount.h
+    # $SED -i "s/1,48/1,$PUBKEY_CHAR/" src/chainparams.cpp
 
-    $SED -i "s/1317972665/$TIMESTAMP/" src/chainparams.cpp
+    # $SED -i "s/1317972665/$TIMESTAMP/" src/chainparams.cpp
 
     $SED -i "s;NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56;$PHRASE;" src/chainparams.cpp
 
-    $SED -i "s/= 9333;/= $MAINNET_PORT;/" src/chainparams.cpp
-    $SED -i "s/= 19335;/= $TESTNET_PORT;/" src/chainparams.cpp
+    # $SED -i "s/= 9333;/= $MAINNET_PORT;/" src/chainparams.cpp
+    # $SED -i "s/= 19335;/= $TESTNET_PORT;/" src/chainparams.cpp
 
-    $SED -i "s/$LITECOIN_PUB_KEY/$MAIN_PUB_KEY/" src/chainparams.cpp
-    $SED -i "s/$LITECOIN_MERKLE_HASH/$MERKLE_HASH/" src/chainparams.cpp
-    $SED -i "s/$LITECOIN_MERKLE_HASH/$MERKLE_HASH/" src/qt/test/rpcnestedtests.cpp
+    # $SED -i "s/$LITECOIN_PUB_KEY/$MAIN_PUB_KEY/" src/chainparams.cpp
+    # $SED -i "s/$LITECOIN_MERKLE_HASH/$MERKLE_HASH/" src/chainparams.cpp
+    # $SED -i "s/$LITECOIN_MERKLE_HASH/$MERKLE_HASH/" src/qt/test/rpcnestedtests.cpp
 
-    $SED -i "0,/$LITECOIN_MAIN_GENESIS_HASH/s//$MAIN_GENESIS_HASH/" src/chainparams.cpp
-    $SED -i "0,/$LITECOIN_TEST_GENESIS_HASH/s//$TEST_GENESIS_HASH/" src/chainparams.cpp
-    $SED -i "0,/$LITECOIN_REGTEST_GENESIS_HASH/s//$REGTEST_GENESIS_HASH/" src/chainparams.cpp
+    # $SED -i "0,/$LITECOIN_MAIN_GENESIS_HASH/s//$MAIN_GENESIS_HASH/" src/chainparams.cpp
+    # $SED -i "0,/$LITECOIN_TEST_GENESIS_HASH/s//$TEST_GENESIS_HASH/" src/chainparams.cpp
+    # $SED -i "0,/$LITECOIN_REGTEST_GENESIS_HASH/s//$REGTEST_GENESIS_HASH/" src/chainparams.cpp
 
-    $SED -i "0,/2084524493/s//$MAIN_NONCE/" src/chainparams.cpp
-    $SED -i "0,/293345/s//$TEST_NONCE/" src/chainparams.cpp
-    $SED -i "0,/1296688602, 0/s//1296688602, $REGTEST_NONCE/" src/chainparams.cpp
-    $SED -i "0,/0x1e0ffff0/s//$BITS/" src/chainparams.cpp
+    # $SED -i "0,/2084524493/s//$MAIN_NONCE/" src/chainparams.cpp
+    # $SED -i "0,/293345/s//$TEST_NONCE/" src/chainparams.cpp
+    # $SED -i "0,/1296688602, 0/s//1296688602, $REGTEST_NONCE/" src/chainparams.cpp
+    # $SED -i "0,/0x1e0ffff0/s//$BITS/" src/chainparams.cpp
 
-    $SED -i "s,vSeeds.emplace_back,//vSeeds.emplace_back,g" src/chainparams.cpp
+    # $SED -i "s,vSeeds.emplace_back,//vSeeds.emplace_back,g" src/chainparams.cpp
 
     #if [ -n "$PREMINED_AMOUNT" ]; then
     #    $SED -i "s/CAmount nSubsidy = QUARK_REWARD \* COIN;/if \(nHeight == 1\) return COIN \* $PREMINED_AMOUNT;\n    CAmount nSubsidy = QUARK_REWARD \* COIN;/" src/validation.cpp
     #fi
 
-    $SED -i "s/COINBASE_MATURITY = 100/COINBASE_MATURITY = $COINBASE_MATURITY/" src/consensus/consensus.h
+    # $SED -i "s/COINBASE_MATURITY = 100/COINBASE_MATURITY = $COINBASE_MATURITY/" src/consensus/consensus.h
 
     # reset minimum chain work to 0
-    $SED -i "s/$MINIMUM_CHAIN_WORK_MAIN/0x00/" src/chainparams.cpp
-    $SED -i "s/$MINIMUM_CHAIN_WORK_TEST/0x00/" src/chainparams.cpp
+    # $SED -i "s/$MINIMUM_CHAIN_WORK_MAIN/0x00/" src/chainparams.cpp
+    # $SED -i "s/$MINIMUM_CHAIN_WORK_TEST/0x00/" src/chainparams.cpp
 
     # change bip activation heights
     # bip 16
-    $SED -i "s/218579/0/" src/chainparams.cpp
+    # $SED -i "s/218579/0/" src/chainparams.cpp
     # bip 34
-    $SED -i "s/710000/0/" src/chainparams.cpp
-    $SED -i "s/fa09d204a83a768ed5a7c8d441fa62f2043abf420cff1226c7b4329aeb9d51cf/$MAIN_GENESIS_HASH/" src/chainparams.cpp
+    # $SED -i "s/710000/0/" src/chainparams.cpp
+    # $SED -i "s/fa09d204a83a768ed5a7c8d441fa62f2043abf420cff1226c7b4329aeb9d51cf/$MAIN_GENESIS_HASH/" src/chainparams.cpp
     # bip 65
-    $SED -i "s/918684/0/" src/chainparams.cpp
+    # $SED -i "s/918684/0/" src/chainparams.cpp
     # bip 66
-    $SED -i "s/811879/0/" src/chainparams.cpp
+    # $SED -i "s/811879/0/" src/chainparams.cpp
 
     # testdummy
-    $SED -i "s/1199145601/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
-    $SED -i "s/1230767999/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
+    # $SED -i "s/1199145601/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
+    # $SED -i "s/1230767999/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
 
-    $SED -i "s/1199145601/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
-    $SED -i "s/1230767999/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
+    # $SED -i "s/1199145601/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
+    # $SED -i "s/1230767999/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
 
     # csv
-    $SED -i "s/1485561600/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
-    $SED -i "s/1517356801/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
+    # $SED -i "s/1485561600/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
+    # $SED -i "s/1517356801/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
 
-    $SED -i "s/1483228800/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
-    $SED -i "s/1517356801/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
+    # $SED -i "s/1483228800/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
+    # $SED -i "s/1517356801/Consensus::BIP9Deployment::NO_TIMEOUT/g" src/chainparams.cpp
 
     # segwit
-    $SED -i "s/1485561600/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
+    # $SED -i "s/1485561600/Consensus::BIP9Deployment::ALWAYS_ACTIVE/g" src/chainparams.cpp
     # timeout of segwit is the same as csv
 
     # defaultAssumeValid
-    $SED -i "s/0x66f49ad85624c33e4fd61aa45c54012509ed4a53308908dd07f56346c7939273/0x$MAIN_GENESIS_HASH/" src/chainparams.cpp
-    $SED -i "s/0x1efb29c8187d5a496a33377941d1df415169c3ce5d8c05d055f25b683ec3f9a3/0x$TEST_GENESIS_HASH/" src/chainparams.cpp
+    # $SED -i "s/0x66f49ad85624c33e4fd61aa45c54012509ed4a53308908dd07f56346c7939273/0x$MAIN_GENESIS_HASH/" src/chainparams.cpp
+    # $SED -i "s/0x1efb29c8187d5a496a33377941d1df415169c3ce5d8c05d055f25b683ec3f9a3/0x$TEST_GENESIS_HASH/" src/chainparams.cpp
 
     # TODO: fix checkpoints
     popd
