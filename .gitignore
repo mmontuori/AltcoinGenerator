@@ -1,6 +1,7 @@
 GenesisH0/
 moneta-master/
-moneta-env/
+moneta-seeder/
+mnta-env/
 moneta/
 miner*/
 .ccache

@@ -37,6 +37,7 @@ GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C
 LITECOIN_BRANCH=0.16
 GENESISHZERO_REPOS=https://github.com/mmontuori/GenesisH0.git
 LITECOIN_REPOS=https://github.com/mmontuori/moneta.git
+SEEDNODE_REPOS=https://github.com/mmontuori/moneta-seeder.git
 # LITECOIN_PUB_KEY=040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9
 # LITECOIN_MERKLE_HASH=97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9
 # LITECOIN_MAIN_GENESIS_HASH=12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2
@@ -49,7 +50,7 @@ COIN_NAME_UPPER=$(echo $COIN_NAME | tr '[:lower:]' '[:upper:]')
 COIN_UNIT_LOWER=$(echo $COIN_UNIT | tr '[:upper:]' '[:lower:]')
 DIRNAME=$(dirname $0)
 DOCKER_NETWORK="172.18.0"
-DOCKER_IMAGE_LABEL="qark-env"
+DOCKER_IMAGE_LABEL="mnta-env"
 OSVERSION="$(uname -s)"
 
 docker_build_image()
@@ -64,7 +65,7 @@ FROM ubuntu:16.04
 RUN echo deb http://ppa.launchpad.net/bitcoin/bitcoin/ubuntu xenial main >> /etc/apt/sources.list
 #RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv D46F45428842CE5E
 RUN apt-get update
-RUN apt-get -y --allow-unauthenticated install ccache git libboost-system1.58.0 libboost-filesystem1.58.0 libboost-program-options1.58.0 libboost-thread1.58.0 libboost-chrono1.58.0 libssl1.0.0 libevent-pthreads-2.0-5 libevent-2.0-5 build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libdb4.8-dev libdb4.8++-dev libminiupnpc-dev libzmq3-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev python-pip iputils-ping net-toole
+RUN apt-get -y --allow-unauthenticated install ccache git libboost-system1.58.0 libboost-filesystem1.58.0 libboost-program-options1.58.0 libboost-thread1.58.0 libboost-chrono1.58.0 libssl1.0.0 libevent-pthreads-2.0-5 libevent-2.0-5 build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libdb4.8-dev libdb4.8++-dev libminiupnpc-dev libzmq3-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev python-pip iputils-ping net-tools libboost-all-dev 
 RUN pip install construct==2.5.2 scrypt
 EOF
         fi 
@@ -83,7 +84,7 @@ docker_run_genesis()
 docker_run()
 {
     mkdir -p $DIRNAME/.ccache
-    docker run -v $DIRNAME/GenesisH0:/GenesisH0 -v $DIRNAME/.ccache:/root/.ccache -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL /bin/bash -c "$1"
+    docker run -v $DIRNAME/moneta-seeder:/moneta-seeder -v $DIRNAME/GenesisH0:/GenesisH0 -v $DIRNAME/.ccache:/root/.ccache -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL /bin/bash -c "$1"
 }
 
 docker_stop_nodes()
@@ -185,6 +186,19 @@ retrieve_hashes()
     TEST_GENESIS_HASH=$(cat ${COIN_NAME}-test.txt | grep "^genesis hash:" | $SED 's/^genesis hash: //')
     REGTEST_GENESIS_HASH=$(cat ${COIN_NAME}-regtest.txt | grep "^genesis hash:" | $SED 's/^genesis hash: //')
     popd
+}
+
+build_seednode()
+{
+    if [ ! -d "moneta-seeder" ]; then
+        git clone $SEEDNODE_REPOS
+    else
+	echo "Updating seeder master branch"
+	pushd moneta-seeder
+	git pull
+	popd
+    fi
+    docker_run "cd /moneta-seeder ; make -j2"
 }
 
 newcoin_replace_vars()
@@ -377,6 +391,7 @@ case $1 in
 	retrieve_hashes
         newcoin_replace_vars
         build_new_coin
+	build_seednode
     ;;
     start)
         if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
