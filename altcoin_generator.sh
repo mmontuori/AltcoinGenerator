@@ -52,6 +52,8 @@ DIRNAME=$(dirname $0)
 DOCKER_NETWORK="172.18.0"
 DOCKER_IMAGE_LABEL="mnta-env"
 OSVERSION="$(uname -s)"
+SEEDNODE_DNS_SERVER="thehost"
+SEEDNODE_HOST="thehost"
 
 docker_build_image()
 {
@@ -117,6 +119,22 @@ docker_remove_network()
     echo "Removing docker network"
     docker network rm newcoin
 }
+
+docker_run_seednode()
+{
+    local NODE_NUMBER=$1
+    local NODE_COMMAND=$2
+    mkdir -p $DIRNAME/miner${NODE_NUMBER}
+    if [ ! -f $DIRNAME/miner${NODE_NUMBER}/$COIN_NAME_LOWER.conf ]; then
+        cat <<EOF > $DIRNAME/miner${NODE_NUMBER}/$COIN_NAME_LOWER.conf
+rpcuser=${COIN_NAME_LOWER}rpc
+rpcpassword=$(cat /dev/urandom | env LC_CTYPE=C tr -dc a-zA-Z0-9 | head -c 32; echo)
+EOF
+    fi
+
+    docker run --net newcoin --ip $DOCKER_NETWORK.${NODE_NUMBER} -v $DIRNAME/moneta-seeder:/moneta-seeder $DOCKER_IMAGE_LABEL /bin/bash -c "$NODE_COMMAND"
+}
+
 
 docker_run_node()
 {
@@ -393,6 +411,10 @@ case $1 in
         build_new_coin
 	build_seednode
     ;;
+    prepare_seednode)
+        docker_build_image
+	build_seednode
+    ;;	
     start)
         if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
             echo "There are nodes running. Please stop them first with: $0 stop"
@@ -410,6 +432,14 @@ case $1 in
         echo "To ask the nodes to mine some blocks simply run:
 #for i in \$(docker ps -q); do docker exec \$i /$COIN_NAME_LOWER/src/${COIN_NAME_LOWER}-cli $CHAIN generate 2  & done"
         exit 1
+    ;;
+    start_seednode)
+        if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
+            echo "There are nodes running. Please stop them first with: $0 stop"
+            exit 1
+        fi
+        docker_create_network
+        docker_run_seednode 6 "cd /moneta-seeder; ls /; ls /moneta-seeder; ./dnsseed -h $SEEDBOX_HOST -n $SEEDBOX_DNS_SERVER" &
     ;;
     *)
         cat <<EOF
