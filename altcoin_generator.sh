@@ -26,7 +26,9 @@ COIN_UNIT="MNTA"
 # number of blocks to wait to be able to spend coinbase UTXO's
 # COINBASE_MATURITY=5
 # leave CHAIN empty for main network, -regtest for regression network and -testnet for test network
-CHAIN="-regtest"
+# CHAIN="-regtest"
+# CHAIN="-testnet"
+CHAIN=""
 # this is the amount of coins to get as a reward of mining the block of height 1. if not set this will default to 50
 # PREMINED_AMOUNT=1000000
 
@@ -37,7 +39,6 @@ GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C
 LITECOIN_BRANCH=0.16
 GENESISHZERO_REPOS=https://github.com/mmontuori/GenesisH0.git
 LITECOIN_REPOS=https://github.com/mmontuori/moneta.git
-SEEDNODE_REPOS=https://github.com/mmontuori/moneta-seeder.git
 # LITECOIN_PUB_KEY=040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9
 # LITECOIN_MERKLE_HASH=97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9
 # LITECOIN_MAIN_GENESIS_HASH=12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2
@@ -86,12 +87,15 @@ docker_run_genesis()
 docker_run()
 {
     mkdir -p $DIRNAME/.ccache
-    docker run -v $DIRNAME/moneta-seeder:/moneta-seeder -v $DIRNAME/GenesisH0:/GenesisH0 -v $DIRNAME/.ccache:/root/.ccache -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL /bin/bash -c "$1"
+    docker run -v $DIRNAME/GenesisH0:/GenesisH0 -v $DIRNAME/.ccache:/root/.ccache -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL /bin/bash -c "$1"
 }
 
 docker_stop_nodes()
 {
     echo "Stopping all docker nodes"
+    for id in $(docker ps -q -a  -f ancestor=$DOCKER_IMAGE_LABEL); do
+        docker exec -ti $id /moneta/src/moneta-cli $CHAIN stop
+    done
     for id in $(docker ps -q -a  -f ancestor=$DOCKER_IMAGE_LABEL); do
         docker stop $id
     done
@@ -119,22 +123,6 @@ docker_remove_network()
     echo "Removing docker network"
     docker network rm newcoin
 }
-
-docker_run_seednode()
-{
-    local NODE_NUMBER=$1
-    local NODE_COMMAND=$2
-    mkdir -p $DIRNAME/miner${NODE_NUMBER}
-    if [ ! -f $DIRNAME/miner${NODE_NUMBER}/$COIN_NAME_LOWER.conf ]; then
-        cat <<EOF > $DIRNAME/miner${NODE_NUMBER}/$COIN_NAME_LOWER.conf
-rpcuser=${COIN_NAME_LOWER}rpc
-rpcpassword=$(cat /dev/urandom | env LC_CTYPE=C tr -dc a-zA-Z0-9 | head -c 32; echo)
-EOF
-    fi
-
-    docker run --net newcoin --ip $DOCKER_NETWORK.${NODE_NUMBER} -v $DIRNAME/moneta-seeder:/moneta-seeder $DOCKER_IMAGE_LABEL /bin/bash -c "$NODE_COMMAND"
-}
-
 
 docker_run_node()
 {
@@ -204,19 +192,6 @@ retrieve_hashes()
     TEST_GENESIS_HASH=$(cat ${COIN_NAME}-test.txt | grep "^genesis hash:" | $SED 's/^genesis hash: //')
     REGTEST_GENESIS_HASH=$(cat ${COIN_NAME}-regtest.txt | grep "^genesis hash:" | $SED 's/^genesis hash: //')
     popd
-}
-
-build_seednode()
-{
-    if [ ! -d "moneta-seeder" ]; then
-        git clone $SEEDNODE_REPOS
-    else
-	echo "Updating seeder master branch"
-	pushd moneta-seeder
-	git pull
-	popd
-    fi
-    docker_run "cd /moneta-seeder ; make -j2"
 }
 
 newcoin_replace_vars()
@@ -409,12 +384,7 @@ case $1 in
 	retrieve_hashes
         newcoin_replace_vars
         build_new_coin
-	build_seednode
     ;;
-    prepare_seednode)
-        docker_build_image
-	build_seednode
-    ;;	
     start)
         if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
             echo "There are nodes running. Please stop them first with: $0 stop"
@@ -432,14 +402,6 @@ case $1 in
         echo "To ask the nodes to mine some blocks simply run:
 #for i in \$(docker ps -q); do docker exec \$i /$COIN_NAME_LOWER/src/${COIN_NAME_LOWER}-cli $CHAIN generate 2  & done"
         exit 1
-    ;;
-    start_seednode)
-        if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
-            echo "There are nodes running. Please stop them first with: $0 stop"
-            exit 1
-        fi
-        docker_create_network
-        docker_run_seednode 6 "cd /moneta-seeder; ls /; ls /moneta-seeder; ./dnsseed -h $SEEDBOX_HOST -n $SEEDBOX_DNS_SERVER" &
     ;;
     *)
         cat <<EOF
