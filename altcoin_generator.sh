@@ -18,8 +18,9 @@ COIN_NAME="Moneta"
 COIN_UNIT="MNTA"
 # 42 million coins at total (litecoin total supply is 84000000)
 # TOTAL_SUPPLY=420000000
-# MAINNET_PORT="47890"
-# TESTNET_PORT="47891"
+MAINNET_PORT="47890"
+TESTNET_PORT="47891"
+REGTEST_PORT="47892"
 # PHRASE="The date is 5/21/2021 and Michael Montuori decided to say. It is time for a new coin"
 # First letter of the wallet address. Check https://en.bitcoin.it/wiki/Base58Check_encoding
 # PUBKEY_CHAR="20"
@@ -128,7 +129,11 @@ docker_run_genesis()
 docker_run()
 {
     mkdir -p $DIRNAME/.ccache
-    docker run -v $DIRNAME/GenesisH0:/GenesisH0 -v $DIRNAME/.ccache:/root/.ccache -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL /bin/bash -c "$1"
+    docker run \
+    -v $DIRNAME/GenesisH0:/GenesisH0 \
+    -v $DIRNAME/.ccache:/root/.ccache \
+    -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL \
+    /bin/bash -c "$1"
 }
 
 docker_stop_nodes()
@@ -177,7 +182,28 @@ rpcpassword=$(cat /dev/urandom | env LC_CTYPE=C tr -dc a-zA-Z0-9 | head -c 32; e
 EOF
     fi
 
-    docker run --net newcoin --ip $DOCKER_NETWORK.${NODE_NUMBER} -v $DIRNAME/miner${NODE_NUMBER}:/root/.$COIN_NAME_LOWER -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL /bin/bash -c "$NODE_COMMAND"
+    if [ "$NODE_NUMBER" == "2" ]; then
+        if [ "$CHAIN" == "" ]; then
+            port_cmd="--expose $MAINNET_PORT --publish $MAINNET_PORT:$MAINNET_PORT"
+        elif [ "$CHAIN" == "-testnet" ]; then
+            port_cmd="--expose $TESTNET_PORT --publish $TESTNET_PORT:$TESTNET_PORT"
+        elif [ "$CHAIN" == "-regtest" ]; then
+            port_cmd="--expose $REGTEST_PORT --publish $REGTEST_PORT:$REGTEST_PORT"
+        else
+            echo "ERROR: CHAIN $CHAIN is not supported!"
+            exit 1
+        fi
+    else
+        port_cmd=""
+    fi
+
+    docker run \
+    --net newcoin \
+    $port_cmd \
+    --ip $DOCKER_NETWORK.${NODE_NUMBER} \
+    -v $DIRNAME/miner${NODE_NUMBER}:/root/.$COIN_NAME_LOWER \
+    -v $DIRNAME/$COIN_NAME_LOWER:/$COIN_NAME_LOWER $DOCKER_IMAGE_LABEL \
+    /bin/bash -c "$NODE_COMMAND"
 }
 
 generate_genesis_block()
