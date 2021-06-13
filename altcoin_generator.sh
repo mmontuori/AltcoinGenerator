@@ -282,31 +282,31 @@ newcoin_replace_vars()
     pushd $COIN_NAME_LOWER
 
     # first rename all directories
-    for i in $(find . -type d | grep -v "^./.git" | grep litecoin); do 
-        git mv $i $(echo $i| $SED "s/litecoin/$COIN_NAME_LOWER/")
-    done
+    # for i in $(find . -type d | grep -v "^./.git" | grep litecoin); do 
+    #     git mv $i $(echo $i| $SED "s/litecoin/$COIN_NAME_LOWER/")
+    # done
 
     # then rename all files
-    for i in $(find . -type f | grep -v "^./.git" | grep litecoin); do
-        git mv $i $(echo $i| $SED "s/litecoin/$COIN_NAME_LOWER/")
-    done
+    # for i in $(find . -type f | grep -v "^./.git" | grep litecoin); do
+    #     git mv $i $(echo $i| $SED "s/litecoin/$COIN_NAME_LOWER/")
+    # done
 
     # now replace all litecoin references to the new coin name
-    for i in $(find . -type f | grep -v "^./.git"); do
-        $SED -i "s/Litecoin/$COIN_NAME/g" $i
-        $SED -i "s/litecoin/$COIN_NAME_LOWER/g" $i
-        $SED -i "s/LITECOIN/$COIN_NAME_UPPER/g" $i
-        $SED -i "s/LTC/$COIN_UNIT/g" $i
-    done
+    # for i in $(find . -type f | grep -v "^./.git"); do
+    #     $SED -i "s/Litecoin/$COIN_NAME/g" $i
+    #     $SED -i "s/litecoin/$COIN_NAME_LOWER/g" $i
+    #     $SED -i "s/LITECOIN/$COIN_NAME_UPPER/g" $i
+    #     $SED -i "s/LTC/$COIN_UNIT/g" $i
+    # done
 
-    $SED -i "s/ltc/$COIN_UNIT_LOWER/g" src/chainparams.cpp
+    # $SED -i "s/ltc/$COIN_UNIT_LOWER/g" src/chainparams.cpp
 
     # $SED -i "s/84000000/$TOTAL_SUPPLY/" src/amount.h
     # $SED -i "s/1,48/1,$PUBKEY_CHAR/" src/chainparams.cpp
 
     # $SED -i "s/1317972665/$TIMESTAMP/" src/chainparams.cpp
 
-    $SED -i "s;NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56;$PHRASE;" src/chainparams.cpp
+    # $SED -i "s;NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56;$PHRASE;" src/chainparams.cpp
 
     # $SED -i "s/= 9333;/= $MAINNET_PORT;/" src/chainparams.cpp
     # $SED -i "s/= 19335;/= $TESTNET_PORT;/" src/chainparams.cpp
