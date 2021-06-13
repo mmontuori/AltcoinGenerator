@@ -184,7 +184,7 @@ EOF
     fi
 
     port_cmd=""
-    if [ "$NODE_NUMBER" == "2" && "$ACCEPT_MINERS" == "true" ]; then
+    if [ "$NODE_NUMBER" == "2" ] && [ "$ACCEPT_MINERS" == "true" ]; then
         if [ "$CHAIN" == "" ]; then
             port_cmd="--expose $MAINNET_PORT --publish $MAINNET_PORT:$MAINNET_PORT"
         elif [ "$CHAIN" == "-testnet" ]; then
