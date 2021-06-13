@@ -32,6 +32,7 @@ REGTEST_PORT="47892"
 CHAIN=""
 # this is the amount of coins to get as a reward of mining the block of height 1. if not set this will default to 50
 # PREMINED_AMOUNT=1000000
+ACCEPT_MINERS=false
 
 # warning: change this to your own pubkey to get the genesis block mining reward
 GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C9978DEAA415E6558702F9C5571A88208C0D4D1D13F90542BFE52DE8A90E51CF840984FD0
@@ -182,7 +183,8 @@ rpcpassword=$(cat /dev/urandom | env LC_CTYPE=C tr -dc a-zA-Z0-9 | head -c 32; e
 EOF
     fi
 
-    if [ "$NODE_NUMBER" == "2" ]; then
+    port_cmd=""
+    if [ "$NODE_NUMBER" == "2" && "$ACCEPT_MINERS" == "true" ]; then
         if [ "$CHAIN" == "" ]; then
             port_cmd="--expose $MAINNET_PORT --publish $MAINNET_PORT:$MAINNET_PORT"
         elif [ "$CHAIN" == "-testnet" ]; then
@@ -193,8 +195,6 @@ EOF
             echo "ERROR: CHAIN $CHAIN is not supported!"
             exit 1
         fi
-    else
-        port_cmd=""
     fi
 
     docker run \
@@ -452,6 +452,14 @@ case $1 in
         newcoin_replace_vars
         build_new_coin
     ;;
+    start_miner)
+        if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
+            echo "There are nodes running. Please stop them first with: $0 stop"
+            exit 1
+        fi
+
+        docker_run_node 2 "cd /$COIN_NAME_LOWER ; ./src/${COIN_NAME_LOWER}d $CHAIN" &
+        ;;
     start)
         if [ -n "$(docker ps -q -f ancestor=$DOCKER_IMAGE_LABEL)" ]; then
             echo "There are nodes running. Please stop them first with: $0 stop"
@@ -475,6 +483,7 @@ case $1 in
 Usage: $0 (start|stop|remove_nodes|clean_up)
  - prepare: bootstrap environment and build
  - start: run your new coin
+ - start_miner: start a single instance miner
  - stop: simply stop the containers without removing them
  - remove_nodes: remove the old docker container images. This will stop them first if necessary.
  - clean_up: WARNING: this will stop and remove docker containers and network, source code, genesis block information and nodes data directory. (to start from scratch)
