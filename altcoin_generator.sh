@@ -32,7 +32,7 @@ REGTEST_PORT="47892"
 CHAIN=""
 # this is the amount of coins to get as a reward of mining the block of height 1. if not set this will default to 50
 # PREMINED_AMOUNT=1000000
-ACCEPT_MINERS=false
+ACCEPT_MINERS=true
 
 # warning: change this to your own pubkey to get the genesis block mining reward
 GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C9978DEAA415E6558702F9C5571A88208C0D4D1D13F90542BFE52DE8A90E51CF840984FD0
