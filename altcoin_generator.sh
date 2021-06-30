@@ -29,10 +29,10 @@ REGTEST_PORT="47892"
 # leave CHAIN empty for main network, -regtest for regression network and -testnet for test network
 # CHAIN="-regtest"
 # CHAIN="-testnet"
-CHAIN=""
+# CHAIN=""
 # this is the amount of coins to get as a reward of mining the block of height 1. if not set this will default to 50
 # PREMINED_AMOUNT=1000000
-ACCEPT_MINERS=true
+ACCEPT_MINERS=false
 
 # warning: change this to your own pubkey to get the genesis block mining reward
 GENESIS_REWARD_PUBKEY=047848280A44401390B68C811E3977E6B17F4BA385AB477917DFF0593C9978DEAA415E6558702F9C5571A88208C0D4D1D13F90542BFE52DE8A90E51CF840984FD0
@@ -67,18 +67,18 @@ docker_build_image_new()
             mkdir -p $DOCKER_IMAGE_LABEL
             cat <<EOF > $DOCKER_IMAGE_LABEL/Dockerfile
 FROM ubuntu:18.04
-ENV DEBIAN_FRONTEND noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN true
-RUN truncate -s0 /tmp/preseed.cfg
-RUN echo "tzdata tzdata/Areas select America" >> /tmp/preseed.cfg
-RUN echo "tzdata tzdata/Zones/America select New_York" >> /tmp/preseed.cfg
-RUN debconf-set-selections /tmp/preseed.cfg
-RUN rm -f /etc/timezone /etc/localtime
+#ENV DEBIAN_FRONTEND noninteractive
+#ENV DEBCONF_NONINTERACTIVE_SEEN true
+#RUN truncate -s0 /tmp/preseed.cfg
+#RUN echo "tzdata tzdata/Areas select America" >> /tmp/preseed.cfg
+#RUN echo "tzdata tzdata/Zones/America select New_York" >> /tmp/preseed.cfg
+#RUN debconf-set-selections /tmp/preseed.cfg
+#RUN rm -f /etc/timezone /etc/localtime
 RUN apt update
-RUN apt install -y tzdata
-RUN apt install -y libterm-readline-gnu-perl
-RUN apt install -y apt-utils
-RUN apt install -y gnupg
+#RUN apt install -y tzdata
+#RUN apt install -y libterm-readline-gnu-perl
+#RUN apt install -y apt-utils
+#RUN apt install -y gnupg
 RUN apt -y upgrade
 RUN apt install -y build-essential libboost-all-dev libssl-dev libtool autotools-dev automake pkg-config bsdmainutils python3 software-properties-common
 RUN echo deb http://ppa.launchpad.net/bitcoin/bitcoin/ubuntu xenial main >> /etc/apt/sources.list
@@ -90,7 +90,6 @@ RUN apt-get install -y python-pip iputils-ping net-tools libboost-all-dev curl
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 #RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
 #RUN python2 get-pip.py
-RUN pip install construct==2.5.2 scrypt
 EOF
         fi
         docker build --label $DOCKER_IMAGE_LABEL --tag $DOCKER_IMAGE_LABEL $DIRNAME/$DOCKER_IMAGE_LABEL/
